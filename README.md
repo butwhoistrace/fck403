@@ -16,12 +16,12 @@ go install github.com/butwhoistrace/fck403@latest
 ### Use
 
 ```bash
-fck403 https://target.com admin                        # run everything
-fck403 https://target.com admin -m methods,paths       # pick modules
-fck403 https://target.com admin -m headers -s          # headers only, show bypasses only
-fck403 https://target.com admin -o json                # save results as json
-fck403 https://target.com admin -x http://127.0.0.1:8080  # through burp
-fck403 --list                                          # show all modules
+fck403 https://target.com/example                           # run everything
+fck403 https://target.com/example -m methods,paths          # pick modules
+fck403 https://target.com/example -m headers -s             # headers only, show bypasses only
+fck403 https://target.com/example -o json                   # save results as json
+fck403 https://target.com/example -x http://127.0.0.1:8080  # through burp
+fck403 --list                                               # show all modules
 ```
 
 ### Modules
